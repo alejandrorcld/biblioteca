@@ -2,12 +2,7 @@ const chaiHttp = require('chai-http');
 const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
-
-// Get Book model from server
-let Book;
-setTimeout(() => {
-  Book = server.app.locals.Book || require('../models/Book')(require('sequelize').sequelize);
-}, 100);
+const Book = require('../models/Book');
 
 chai.use(chaiHttp);
 
@@ -16,9 +11,7 @@ suite('Functional Tests', function() {
 
   // Clear books before each test
   beforeEach(async function() {
-    if (Book) {
-      await Book.destroy({ where: {} });
-    }
+    await Book.deleteMany({});
   });
 
   // Test GET all books when empty
@@ -37,37 +30,32 @@ suite('Functional Tests', function() {
   test('POST /api/books - Add a new book', function(done) {
     const newBook = {
       title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      isbn: '978-0743273565',
-      description: 'A classic American novel',
-      pages: 180
+      author: 'F. Scott Fitzgerald'
     };
 
     chai.request(server)
       .post('/api/books')
       .send(newBook)
       .end((err, res) => {
-        assert.equal(res.status, 201);
+        assert.equal(res.status, 200);
         assert.equal(res.body.title, 'The Great Gatsby');
-        assert.equal(res.body.author, 'F. Scott Fitzgerald');
         assert.isObject(res.body);
-        assert.property(res.body, 'id');
+        assert.property(res.body, '_id');
         done();
       });
   });
 
   // Test POST book without required fields
   test('POST /api/books - Reject book without title or author', function(done) {
-    const invalidBook = {
-      isbn: '123-456'
-    };
+    const invalidBook = {};
 
     chai.request(server)
       .post('/api/books')
       .send(invalidBook)
       .end((err, res) => {
-        assert.equal(res.status, 400);
+        assert.equal(res.status, 200);
         assert.property(res.body, 'error');
+        assert.equal(res.body.error, 'Title and author are required');
         done();
       });
   });
@@ -100,11 +88,13 @@ suite('Functional Tests', function() {
       author: 'Harper Lee'
     }).then((book) => {
       chai.request(server)
-        .get(`/api/books/${book.id}`)
+        .get(`/api/books/${book._id}`)
         .end((err, res) => {
           assert.equal(res.status, 200);
           assert.equal(res.body.title, 'To Kill a Mockingbird');
-          assert.equal(res.body.id, book.id);
+          assert.equal(res.body._id, book._id.toString());
+          assert.isArray(res.body.comments);
+          assert.equal(res.body.comments.length, 0);
           done();
         });
     });
@@ -113,10 +103,11 @@ suite('Functional Tests', function() {
   // Test GET book by invalid ID
   test('GET /api/books/:id - Get non-existent book', function(done) {
     chai.request(server)
-      .get('/api/books/999999')
+      .get('/api/books/507f1f77bcf86cd799439011')
       .end((err, res) => {
-        assert.equal(res.status, 404);
+        assert.equal(res.status, 200);
         assert.property(res.body, 'error');
+        assert.equal(res.body.error, 'Book not found');
         done();
       });
   });

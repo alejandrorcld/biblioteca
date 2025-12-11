@@ -1,109 +1,87 @@
 const express = require('express');
 const router = express.Router();
+const Book = require('../models/Book');
 
 router.use((req, res, next) => {
-  req.Book = req.app.locals.Book;
+  req.Book = Book;
   next();
-});
-
-// GET all books
-router.get('/books', async (req, res) => {
-  try {
-    const books = await req.Book.findAll({
-      order: [['createdAt', 'DESC']]
-    });
-    res.json(books);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET book by ID
-router.get('/books/:id', async (req, res) => {
-  try {
-    const book = await req.Book.findByPk(req.params.id);
-    if (!book) {
-      return res.status(404).json({ error: 'Book not found' });
-    }
-    res.json(book);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
 // POST a new book
 router.post('/books', async (req, res) => {
   try {
-    const { title, author, isbn, description, pages, publishedDate } = req.body;
-
+    const { title, author } = req.body;
     if (!title || !author) {
-      return res.status(400).json({ error: 'Title and author are required' });
+      return res.json({ error: 'Title and author are required' });
     }
 
-    const newBook = await req.Book.create({
-      title,
-      author,
-      isbn: isbn || '',
-      description: description || '',
-      pages: pages || 0,
-      publishedDate: publishedDate || null
-    });
-
-    res.status(201).json(newBook);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const newBook = new Book({ title, author, comments: [] });
+    await newBook.save();
+    return res.json({ title: newBook.title, _id: newBook._id });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 
-// PUT update a book
-router.put('/books/:id', async (req, res) => {
+// GET all books
+router.get('/books', async (req, res) => {
   try {
-    const book = await req.Book.findByPk(req.params.id);
-    
-    if (!book) {
-      return res.status(404).json({ error: 'Book not found' });
-    }
-
-    const { title, author, isbn, description, pages, publishedDate } = req.body;
-
-    const updateData = {};
-    if (title !== undefined) updateData.title = title;
-    if (author !== undefined) updateData.author = author;
-    if (isbn !== undefined) updateData.isbn = isbn;
-    if (description !== undefined) updateData.description = description;
-    if (pages !== undefined) updateData.pages = pages;
-    if (publishedDate !== undefined) updateData.publishedDate = publishedDate;
-
-    await book.update(updateData);
-    res.json(book);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const books = await Book.find({});
+    const result = books.map(b => ({
+      title: b.title,
+      _id: b._id,
+      commentcount: b.comments.length
+    }));
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 
-// DELETE a book
+// GET single book by id
+router.get('/books/:id', async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.json({ error: 'Book not found' });
+    return res.json({ title: book.title, _id: book._id, comments: book.comments });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST comment to book
+router.post('/books/:id', async (req, res) => {
+  try {
+    const { comment } = req.body;
+    if (!comment) return res.json({ error: 'missing required field comment' });
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.json({ error: 'no book exists' });
+    book.comments.push(comment);
+    await book.save();
+    return res.json({ title: book.title, _id: book._id, comments: book.comments });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE a book by id
 router.delete('/books/:id', async (req, res) => {
   try {
-    const book = await req.Book.findByPk(req.params.id);
-    
-    if (!book) {
-      return res.status(404).json({ error: 'Book not found' });
-    }
-
-    await book.destroy();
-    res.json({ message: 'Book deleted successfully', book });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const book = await Book.findByIdAndDelete(req.params.id);
+    if (!book) return res.json({ error: 'no book exists' });
+    return res.send('delete successful');
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 
 // DELETE all books
 router.delete('/books', async (req, res) => {
   try {
-    await req.Book.destroy({ where: {} });
-    res.json({ message: 'complete delete successful' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    await Book.deleteMany({});
+    return res.json({ message: 'complete delete successful' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 

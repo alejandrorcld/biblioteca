@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { Sequelize } = require('sequelize');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -8,16 +8,13 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Sequelize with SQLite
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: path.join(__dirname, 'database.sqlite'),
-  logging: false
-});
-
-// Import Book model
-const bookModel = require('./models/Book');
-const Book = bookModel(sequelize);
+// Connect to MongoDB
+mongoose.connect(process.env.DB || 'mongodb://localhost:27017/biblioteca', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 // Middleware
 app.use(cors());
@@ -29,22 +26,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Database connection and sync
-sequelize.authenticate()
-  .then(() => {
-    console.log('Connected to SQLite database');
-    return sequelize.sync();
-  })
-  .then(() => {
-    console.log('Database synchronized');
-  })
-  .catch((error) => {
-    console.error('Database error:', error);
-  });
-
-// Make Book model available globally for routes
-app.locals.Book = Book;
-
 // Routes
 app.use('/api', require('./routes/api'));
 
@@ -55,16 +36,14 @@ app.get('/', (req, res) => {
 
 // Endpoint for FCC to get tests
 app.get('/_api/get-tests', (req, res) => {
-  res.json({ 
-    tests: [
-      'GET all books',
-      'POST new book',
-      'GET book by ID',
-      'PUT update book',
-      'DELETE book by ID',
-      'DELETE all books'
-    ]
-  });
+  res.json([
+    'GET all books',
+    'POST new book',
+    'GET book by ID',
+    'PUT update book',
+    'DELETE book by ID',
+    'DELETE all books'
+  ]);
 });
 
 // 404 handler
