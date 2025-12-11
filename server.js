@@ -30,12 +30,7 @@ if (mongoUri) {
     })
     .catch((error) => {
       console.error('MongoDB connection error:', error);
-      if (process.env.NODE_ENV !== 'test') {
-        process.exit(1);
-      }
     });
-} else {
-  console.warn('No DB connection string provided');
 }
 
 // Routes
@@ -44,16 +39,6 @@ app.use('/api', require('./routes/api'));
 // Main page route
 app.get('/', (req, res) => {
   res.render('index');
-});
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK' });
-});
-
-// Endpoint for FCC to get tests
-app.get('/_api/get-tests', (req, res) => {
-  res.json({ tests: 'Tests available, run npm test' });
 });
 
 // 404 handler
