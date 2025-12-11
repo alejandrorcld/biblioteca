@@ -11,10 +11,9 @@ router.use((req, res, next) => {
 router.post('/books', async (req, res) => {
   try {
     const { title, author } = req.body;
-    if (!title) return res.json({ error: 'missing required field title' });
-    if (!author) return res.json({ error: 'missing required field author' });
+    if (!title) return res.send('missing required field title');
 
-    const newBook = new Book({ title, author, comments: [] });
+    const newBook = new Book({ title, author: author || '', comments: [] });
     await newBook.save();
     return res.json({ title: newBook.title, _id: newBook._id });
   } catch (err) {
@@ -41,7 +40,7 @@ router.get('/books', async (req, res) => {
 router.get('/books/:id', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
-    if (!book) return res.json({ error: 'no book exists' });
+    if (!book) return res.send('no book exists');
     return res.json({ title: book.title, _id: book._id, comments: book.comments });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -52,9 +51,9 @@ router.get('/books/:id', async (req, res) => {
 router.post('/books/:id', async (req, res) => {
   try {
     const { comment } = req.body;
-    if (!comment) return res.json({ error: 'missing required field comment' });
+    if (!comment) return res.send('missing required field comment');
     const book = await Book.findById(req.params.id);
-    if (!book) return res.json({ error: 'no book exists' });
+    if (!book) return res.send('no book exists');
     book.comments.push(comment);
     await book.save();
     return res.json({ title: book.title, _id: book._id, comments: book.comments });
@@ -67,7 +66,7 @@ router.post('/books/:id', async (req, res) => {
 router.delete('/books/:id', async (req, res) => {
   try {
     const book = await Book.findByIdAndDelete(req.params.id);
-    if (!book) return res.json({ error: 'no book exists' });
+    if (!book) return res.send('no book exists');
     return res.send('delete successful');
   } catch (err) {
     return res.status(500).json({ error: err.message });
