@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const Mocha = require('mocha');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +47,28 @@ app.get('/', (req, res) => {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
+});
+
+// Run tests endpoint for FCC
+app.post('/api/run-tests', (req, res) => {
+  const mocha = new Mocha();
+  
+  mocha.addFile(path.join(__dirname, 'tests/2_functional-tests.js'));
+  
+  mocha.run((failures) => {
+    if (failures) {
+      res.status(200).json({ 
+        success: false, 
+        failures: failures,
+        message: `${failures} test(s) failed`
+      });
+    } else {
+      res.status(200).json({ 
+        success: true, 
+        message: 'All tests passed!'
+      });
+    }
+  });
 });
 
 // 404 handler
