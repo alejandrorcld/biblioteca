@@ -14,7 +14,6 @@ const server = require('../server');
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
-  this.timeout(10000);
 
   suite('Routing tests', function() {
 
@@ -50,7 +49,7 @@ suite('Functional Tests', function() {
 
     suite('GET /api/books => array of books', function(){
       
-      test('Test GET /api/books', function(done){
+      test('Test GET /api/books',  function(done){
         chai.request(server)
           .get('/api/books')
           .end(function(err, res) {
@@ -65,7 +64,7 @@ suite('Functional Tests', function() {
 
     suite('GET /api/books/[id] => book object with [id]', function(){
       
-      test('Test GET /api/books/[id] with id not in db', function(done){
+      test('Test GET /api/books/[id] with id not in db',  function(done){
         chai.request(server)
           .get('/api/books/invalidid123456789012')
           .end(function(err, res) {
@@ -75,7 +74,7 @@ suite('Functional Tests', function() {
           });
       });
       
-      test('Test GET /api/books/[id] with valid id in db', function(done){
+      test('Test GET /api/books/[id] with valid id in db',  function(done){
         chai.request(server)
           .post('/api/books')
           .send({ title: 'Test Book for GET' })
@@ -170,7 +169,7 @@ suite('Functional Tests', function() {
           });
       });
 
-      test('Test DELETE /api/books/[id] with id not in db', function(done){
+      test('Test DELETE /api/books/[id] with  id not in db', function(done){
         chai.request(server)
           .delete('/api/books/invalidid123456789012')
           .end(function(err, res) {

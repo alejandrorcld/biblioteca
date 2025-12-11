@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Personal Library</title>
+  <link rel="icon" type="image/png" href="https://cdn.freecodecamp.org/universal/favicons/favicon-16x16.png" />
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/public/style.css">
+  <style>
+    code {
+      background-color: whitesmoke;
+    }
+    .border {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    #display {
+      margin: 20px 0;
+    }
+    .bookItem {
+      cursor: pointer;
+      padding: 5px;
+      margin: 5px 0;
+      background: #f5f5f5;
+    }
+    .bookItem:hover {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Personal Library</h1>
+</header>
+<br>
+<div id="sampleposting">
+  <h2 style="text-align: left">Test API responses</h2>
+  <form action="/api/books" method="post" class="border">
+    <h4>Test post to /api/books</h4>
+    <label for="title">Book Title</label>
+    <input type="text" id="title" name="title" value=""><br>
+    <input type="submit" value="Submit">
+  </form>
+  <form action="" method="post" id="commentTest" class="border">
+    <h4>Test post to /api/books/{bookid}</h4>
+    <label for="idinputtest">BookId to comment on</label>
+    <input type="text" name="id" value="" id="idinputtest"><br>
+    <label for="comment">Comment</label>
+    <input type="text" id="comment" name="comment" value=""><br>
+    <input type="submit" value="Submit">
+  </form>
+</div>
+<hr style="margin: 50px">
+<div id="sampleui">
+  <h2 style="text-align: left">Sample Front-End</h2>
+  <form id="newBookForm" class="border">
+    <label for="bookTitleToAdd">New Book Title</label>
+    <input type="text" id="bookTitleToAdd" name="title" placeholder="Moby Dick" style="width: 295px">
+    <button type="submit" value="Submit" id="newBook">Submit New Book!</button>
+  </form>
+  <div id="display"></div>
+  <div id="bookDetail" class="border">
+    <p id="detailTitle">Select a book to see its details and comments</p>
+    <ol id="detailComments"></ol>
+    <form id="addCommentForm" style="display:none;">
+      <input type="text" id="commentToAdd" placeholder="New Comment">
+      <button type="submit">Add Comment</button>
+    </form>
+  </div>
+  <button id="deleteAllBooks">Delete all books...</button>
+</div>
+<hr style="margin: 50px">
+
+<script src="https://code.jquery.com/jquery-2.2.1.min.js"
+        integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+        crossorigin="anonymous"></script>
+<script>
+$(document).ready(function() {
+  let items = [];
+  let itemsRaw = [];
+  
+  $('#commentTest').submit(function(){
+    let id = $('#idinputtest').val();
+    $(this).attr('action', '/api/books/' + id);
+  });
+
+  $.getJSON('/api/books', function(data) {
+    itemsRaw = data;
+    items = data.map(function(book) {
+      return '<div class="bookItem" id="' + book._id + '">' + 
+             book.title + ' - ' + book.commentcount + ' comments</div>';
+    });
+    $('#display').html(items.join(''));
+  });
+
+  $('#display').on('click', '.bookItem', function() {
+    let id = $(this).attr('id');
+    $.getJSON('/api/books/' + id, function(data) {
+      $('#detailTitle').html('<b>' + data.title + '</b> (id: ' + data._id + ')');
+      let comments = data.comments.map(function(c) {
+        return '<li>' + c + '</li>';
+      });
+      $('#detailComments').html(comments.join(''));
+      $('#addCommentForm').show().data('id', id);
+    });
+  });
+
+  $('#newBookForm').submit(function(e) {
+    e.preventDefault();
+    let title = $('#bookTitleToAdd').val();
+    $.ajax({
+      url: '/api/books',
+      type: 'post',
+      data: { title: title },
+      success: function(data) {
+        itemsRaw.push(data);
+        let item = '<div class="bookItem" id="' + data._id + '">' + 
+                   data.title + ' - 0 comments</div>';
+        $('#display').append(item);
+        $('#bookTitleToAdd').val('');
+      }
+    });
+  });
+
+  $('#addCommentForm').submit(function(e) {
+    e.preventDefault();
+    let id = $(this).data('id');
+    let comment = $('#commentToAdd').val();
+    $.ajax({
+      url: '/api/books/' + id,
+      type: 'post',
+      data: { comment: comment },
+      success: function(data) {
+        let comments = data.comments.map(function(c) {
+          return '<li>' + c + '</li>';
+        });
+        $('#detailComments').html(comments.join(''));
+        $('#commentToAdd').val('');
+      }
+    });
+  });
+
+  $('#deleteAllBooks').click(function() {
+    $.ajax({
+      url: '/api/books',
+      type: 'delete',
+      success: function(data) {
+        $('#display').html('<p>' + data + '</p>');
+        $('#detailTitle').text('Select a book to see its details and comments');
+        $('#detailComments').html('');
+        $('#addCommentForm').hide();
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
