@@ -41,6 +41,20 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+// Endpoint for FCC to get tests
+app.get('/_api/get-tests', (req, res) => {
+  res.json({ 
+    tests: [
+      'GET all books',
+      'POST new book',
+      'GET book by ID',
+      'PUT update book',
+      'DELETE book by ID',
+      'DELETE all books'
+    ]
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
