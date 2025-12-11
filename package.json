@@ -5,26 +5,31 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "NODE_ENV=test mocha tests/2_functional-tests.js --timeout 10000",
+    "test": "concurrently \"node server.js\" \"sleep 2 && NODE_ENV=test mocha tests/2_functional-tests.js --timeout 10000\" --kill-others-on-exit",
     "dev": "nodemon server.js"
   },
-  "keywords": ["library", "personal", "books"],
+  "keywords": [
+    "library",
+    "personal",
+    "books"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.5.0",
-    "dotenv": "^16.3.1",
-    "cors": "^2.8.5",
     "body-parser": "^1.20.2",
-    "mocha": "^10.2.0",
-    "chai": "^4.3.10",
-    "chai-http": "^4.4.0"
-  },
-  "devDependencies": {
-    "mocha": "^10.2.0",
     "chai": "^4.3.10",
     "chai-http": "^4.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mocha": "^10.2.0",
+    "mongoose": "^7.5.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.10",
+    "chai-http": "^4.4.0",
+    "concurrently": "^9.2.1",
+    "mocha": "^10.2.0",
     "nodemon": "^3.0.1"
   }
 }

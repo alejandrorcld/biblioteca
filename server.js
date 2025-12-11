@@ -51,6 +51,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
+// Endpoint for FCC to get tests
+app.get('/_api/get-tests', (req, res) => {
+  res.json({ tests: 'Tests available, run npm test' });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
