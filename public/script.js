@@ -1,10 +1,7 @@
-// ✅ ELEMENTOS DOM FCC-COMPATIBLES
-const bookForm = document.getElementById('newBookForm');   // FCC exige este ID
-const booksList = document.getElementById('bookList');     // FCC exige este ID
-const bookDetail = document.getElementById('bookDetail');  // FCC exige este ID
-
-// ✅ ELEMENTOS DE TU APP
+// ELEMENTOS DOM TU APP
+const bookForm = document.getElementById('bookForm');
 const editForm = document.getElementById('editForm');
+const booksList = document.getElementById('booksList');
 const searchInput = document.getElementById('searchInput');
 const deleteAllBtn = document.getElementById('deleteAllBtn');
 const editModal = document.getElementById('editModal');
@@ -19,37 +16,39 @@ const API_URL = '/api';
 let allBooks = [];
 let filteredBooks = [];
 
-// ✅ EVENTOS FCC + TU APP
-bookForm.addEventListener('submit', handleAddBook);
-editForm.addEventListener('submit', handleEditBook);
-searchInput.addEventListener('input', handleSearch);
-deleteAllBtn.addEventListener('click', handleDeleteAll);
-closeBtn.addEventListener('click', closeModal);
-cancelEditBtn.addEventListener('click', closeModal);
+// EVENTOS TU APP
+if (bookForm) bookForm.addEventListener('submit', handleAddBook);
+if (editForm) editForm.addEventListener('submit', handleEditBook);
+if (searchInput) searchInput.addEventListener('input', handleSearch);
+if (deleteAllBtn) deleteAllBtn.addEventListener('click', handleDeleteAll);
+if (closeBtn) closeBtn.addEventListener('click', closeModal);
+if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeModal);
 
 document.addEventListener('DOMContentLoaded', () => {
   loadBooks();
 });
 
-// ✅ CARGAR LIBROS
+// CARGAR LIBROS
 async function loadBooks() {
   try {
     const response = await fetch(`${API_URL}/books`);
+    if (!response.ok) throw new Error('Error al cargar libros');
+    
     allBooks = await response.json();
     filteredBooks = [...allBooks];
     renderBooks();
     updateBookCount();
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
   }
 }
 
-// ✅ AGREGAR LIBRO
+// AGREGAR LIBRO
 async function handleAddBook(e) {
   e.preventDefault();
 
   const formData = {
-    title: document.getElementById('title').value.trim(),
+    title: document.getElementById('mainTitle').value.trim(),
     author: document.getElementById('author').value.trim(),
     isbn: document.getElementById('isbn').value.trim(),
     description: document.getElementById('description').value.trim(),
@@ -57,7 +56,9 @@ async function handleAddBook(e) {
     publishedDate: document.getElementById('publishedDate').value || null
   };
 
-  if (!formData.title) return;
+  if (!formData.title || !formData.author) {
+    return;
+  }
 
   try {
     const response = await fetch(`${API_URL}/books`, {
@@ -66,75 +67,85 @@ async function handleAddBook(e) {
       body: JSON.stringify(formData)
     });
 
+    if (!response.ok) throw new Error('Error al agregar libro');
+
     const newBook = await response.json();
     allBooks.unshift(newBook);
     filteredBooks = [...allBooks];
-
+    
     bookForm.reset();
     renderBooks();
     updateBookCount();
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
   }
 }
 
-// ✅ RENDERIZAR LIBROS (FCC + TU UI)
+// RENDERIZAR LIBROS (TU UI)
 function renderBooks() {
+  if (!booksList) return;
+
   if (filteredBooks.length === 0) {
     booksList.innerHTML = '<p class="empty-state">No hay libros. ¡Agrega uno para empezar!</p>';
     return;
   }
 
   booksList.innerHTML = filteredBooks.map(book => `
-    <li class="book-card">
-
+    <div class="book-card">
       <div class="book-header">
         <div class="book-title">${escapeHtml(book.title)}</div>
         <div class="book-author">por ${escapeHtml(book.author || '')}</div>
+        <div class="book-details">
+          ${book.isbn ? `
+            <div class="book-detail-row">
+              <span class="book-detail-label">ISBN:</span>
+              <span class="book-detail-value">${escapeHtml(book.isbn)}</span>
+            </div>
+          ` : ''}
+          ${book.pages ? `
+            <div class="book-detail-row">
+              <span class="book-detail-label">Páginas:</span>
+              <span class="book-detail-value">${book.pages}</span>
+            </div>
+          ` : ''}
+          ${book.publishedDate ? `
+            <div class="book-detail-row">
+              <span class="book-detail-label">Publicado:</span>
+              <span class="book-detail-value">${new Date(book.publishedDate).toLocaleDateString('es-ES')}</span>
+            </div>
+          ` : ''}
+        </div>
+        ${book.description ? `<div class="book-description">${escapeHtml(book.description)}</div>` : ''}
       </div>
-
       <div class="book-actions">
-        <!-- ✅ BOTÓN FCC PARA VER DETALLES -->
-        <button class="btn btn-view" onclick="loadBookDetail('${book._id}')">View</button>
-
-        <!-- ✅ BOTÓN FCC PARA ELIMINAR -->
-        <button class="btn btn-delete fcc-delete" onclick="deleteBook('${book._id}')">delete</button>
-
-        <!-- ✅ TUS BOTONES -->
         <button class="btn btn-edit" onclick="openEditModal('${book._id}')">Editar</button>
+        <button class="btn btn-delete" onclick="deleteBook('${book._id}')">Eliminar</button>
       </div>
-
-    </li>
+    </div>
   `).join('');
 }
 
-// ✅ BUSCAR
+// BUSCAR
 function handleSearch() {
   const searchTerm = searchInput.value.toLowerCase();
-  filteredBooks = allBooks.filter(book =>
-    book.title.toLowerCase().includes(searchTerm) ||
-    (book.author || '').toLowerCase().includes(searchTerm)
-  );
+  
+  if (!searchTerm) {
+    filteredBooks = [...allBooks];
+  } else {
+    filteredBooks = allBooks.filter(book => {
+      const titleMatch = (book.title || '').toLowerCase().includes(searchTerm);
+      const authorMatch = (book.author || '').toLowerCase().includes(searchTerm);
+      return titleMatch || authorMatch;
+    });
+  }
+
   renderBooks();
 }
 
-// ✅ DETALLE FCC (OBLIGATORIO PARA PRUEBA 8)
-function loadBookDetail(id) {
-  fetch(`${API_URL}/books/${id}`)
-    .then(res => res.json())
-    .then(book => {
-      bookDetail.innerHTML = `
-        <h3>${escapeHtml(book.title)}</h3>
-        <ul>
-          ${book.comments.map(c => `<li>${escapeHtml(c)}</li>`).join('')}
-        </ul>
-      `;
-    });
-}
-
-// ✅ MODAL TUYO
+// MODAL EDITAR
 function openEditModal(bookId) {
   const book = allBooks.find(b => b._id === bookId);
+  
   if (!book) return;
 
   document.getElementById('editId').value = book._id;
@@ -153,7 +164,7 @@ function closeModal() {
   editForm.reset();
 }
 
-// ✅ EDITAR LIBRO
+// GUARDAR EDICIÓN
 async function handleEditBook(e) {
   e.preventDefault();
 
@@ -174,58 +185,80 @@ async function handleEditBook(e) {
       body: JSON.stringify(formData)
     });
 
+    if (!response.ok) throw new Error('Error al actualizar libro');
+
     const updatedBook = await response.json();
+    
     const index = allBooks.findIndex(b => b._id === bookId);
-    if (index !== -1) allBooks[index] = updatedBook;
+    if (index !== -1) {
+      allBooks[index] = updatedBook;
+    }
 
     filteredBooks = [...allBooks];
     renderBooks();
     closeModal();
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
   }
 }
 
-// ✅ ELIMINAR LIBRO (FCC + TU APP)
+// ELIMINAR LIBRO
 async function deleteBook(bookId) {
   try {
-    await fetch(`${API_URL}/books/${bookId}`, { method: 'DELETE' });
+    const response = await fetch(`${API_URL}/books/${bookId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) throw new Error('Error al eliminar libro');
 
     allBooks = allBooks.filter(b => b._id !== bookId);
     filteredBooks = [...allBooks];
     renderBooks();
     updateBookCount();
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
   }
 }
 
-// ✅ ELIMINAR TODOS
+// ELIMINAR TODOS
 async function handleDeleteAll() {
   try {
-    await fetch(`${API_URL}/books`, { method: 'DELETE' });
+    const response = await fetch(`${API_URL}/books`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) throw new Error('Error al eliminar libros');
+
     allBooks = [];
     filteredBooks = [];
     renderBooks();
     updateBookCount();
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
   }
 }
 
-// ✅ CONTADOR
+// CONTADOR
 function updateBookCount() {
   bookCount.textContent = allBooks.length;
 }
 
-// ✅ ESCAPAR HTML
+// ESCAPAR HTML
 function escapeHtml(text) {
   if (!text) return '';
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
   return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// ✅ CERRAR MODAL AL CLIC FUERA
-window.addEventListener('click', e => {
-  if (e.target === editModal) closeModal();
+// CERRAR MODAL AL CLIC FUERA
+window.addEventListener('click', (e) => {
+  if (e.target === editModal) {
+    closeModal();
+  }
 });
