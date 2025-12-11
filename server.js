@@ -53,8 +53,15 @@ app.use((req, res) => {
 });
 
 // Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+let server;
+if (require.main === module) {
+  server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+} else {
+  server = app.listen(0, () => {
+    console.log(`Server running on port ${server.address().port}`);
+  });
+}
 
 module.exports = server;
