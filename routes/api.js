@@ -78,7 +78,7 @@ router.delete('/books/:id', async (req, res) => {
 router.delete('/books', async (req, res) => {
   try {
     await Book.deleteMany({});
-    return res.json({ message: 'complete delete successful' });
+    return res.send('complete delete successful');
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
