@@ -64,6 +64,25 @@ app.use((req, res) => {
 // Start server
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // If in test mode, run tests after server starts
+  if (process.env.NODE_ENV === 'test') {
+    const Mocha = require('mocha');
+    const path = require('path');
+    
+    setTimeout(() => {
+      const mocha = new Mocha({
+        timeout: 10000,
+        reporter: 'spec'
+      });
+
+      mocha.addFile(path.join(__dirname, 'tests/2_functional-tests.js'));
+
+      mocha.run((failures) => {
+        process.exit(failures ? 1 : 0);
+      });
+    }, 500);
+  }
 });
 
 module.exports = server;
