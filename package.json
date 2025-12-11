@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "NODE_ENV=test npm start",
+    "test": "NODE_ENV=test node test-with-ngrok.js",
     "dev": "nodemon server.js"
   },
   "keywords": [
@@ -26,6 +26,7 @@
     "chai": "^4.3.10",
     "chai-http": "^4.4.0",
     "mocha": "^10.2.0",
+    "ngrok": "^5.0.0-beta.2",
     "nodemon": "^3.0.1"
   }
 }
