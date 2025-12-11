@@ -1,34 +1,34 @@
 // ELEMENTOS DOM TU APP
-const bookForm = document.getElementById('bookForm');
-const editForm = document.getElementById('editForm');
-const booksList = document.getElementById('booksList');
-const searchInput = document.getElementById('searchInput');
-const deleteAllBtn = document.getElementById('deleteAllBtn');
-const editModal = document.getElementById('editModal');
-const closeBtn = document.querySelector('.close');
-const cancelEditBtn = document.getElementById('cancelEdit');
-const bookCount = document.getElementById('bookCount');
+const bookForm = document.getElementById("bookForm");
+const editForm = document.getElementById("editForm");
+const booksList = document.getElementById("booksList");
+const searchInput = document.getElementById("searchInput");
+const deleteAllBtn = document.getElementById("deleteAllBtn");
+const editModal = document.getElementById("editModal");
+const closeBtn = document.querySelector(".close");
+const cancelEditBtn = document.getElementById("cancelEdit");
+const bookCount = document.getElementById("bookCount");
 
-const API_URL = '/api';
+const API_URL = "/api";
 
 let allBooks = [];
 let filteredBooks = [];
 
-if (bookForm) bookForm.addEventListener('submit', handleAddBook);
-if (editForm) editForm.addEventListener('submit', handleEditBook);
-if (searchInput) searchInput.addEventListener('input', handleSearch);
-if (deleteAllBtn) deleteAllBtn.addEventListener('click', handleDeleteAll);
-if (closeBtn) closeBtn.addEventListener('click', closeModal);
-if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeModal);
+if (bookForm) bookForm.addEventListener("submit", handleAddBook);
+if (editForm) editForm.addEventListener("submit", handleEditBook);
+if (searchInput) searchInput.addEventListener("input", handleSearch);
+if (deleteAllBtn) deleteAllBtn.addEventListener("click", handleDeleteAll);
+if (closeBtn) closeBtn.addEventListener("click", closeModal);
+if (cancelEditBtn) cancelEditBtn.addEventListener("click", closeModal);
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   loadBooks();
 });
 
 async function loadBooks() {
   try {
     const response = await fetch(`${API_URL}/books`);
-    if (!response.ok) throw new Error('Error al cargar libros');
+    if (!response.ok) throw new Error("Error al cargar libros");
     allBooks = await response.json();
     filteredBooks = [...allBooks];
     renderBooks();
@@ -42,23 +42,23 @@ async function handleAddBook(e) {
   e.preventDefault();
 
   const formData = {
-    title: document.getElementById('mainTitle').value.trim(),
-    author: document.getElementById('author').value.trim(),
-    isbn: document.getElementById('isbn').value.trim(),
-    description: document.getElementById('description').value.trim(),
-    pages: parseInt(document.getElementById('pages').value) || 0,
-    publishedDate: document.getElementById('publishedDate').value || null
+    title: document.getElementById("mainTitle").value.trim(),
+    author: document.getElementById("author").value.trim(),
+    isbn: document.getElementById("isbn").value.trim(),
+    description: document.getElementById("description").value.trim(),
+    pages: parseInt(document.getElementById("pages").value) || 0,
+    publishedDate: document.getElementById("publishedDate").value || null,
   };
 
   if (!formData.title || !formData.author) return;
 
   try {
     const response = await fetch(`${API_URL}/books`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
     });
-    if (!response.ok) throw new Error('Error al agregar libro');
+    if (!response.ok) throw new Error("Error al agregar libro");
     const newBook = await response.json();
     allBooks.unshift(newBook);
     filteredBooks = [...allBooks];
@@ -74,96 +74,115 @@ function renderBooks() {
   if (!booksList) return;
 
   if (filteredBooks.length === 0) {
-    booksList.innerHTML = '<p class="empty-state">No hay libros. ¡Agrega uno para empezar!</p>';
+    booksList.innerHTML =
+      '<p class="empty-state">No hay libros. ¡Agrega uno para empezar!</p>';
     return;
   }
 
-  booksList.innerHTML = filteredBooks.map(book => `
+  booksList.innerHTML = filteredBooks
+    .map(
+      (book) => `
     <div class="book-card">
       <div class="book-header">
         <div class="book-title">${escapeHtml(book.title)}</div>
-        <div class="book-author">por ${escapeHtml(book.author || '')}</div>
+        <div class="book-author">por ${escapeHtml(book.author || "")}</div>
         <div class="book-details">
-          ${book.isbn ? `
+          ${
+            book.isbn
+              ? `
             <div class="book-detail-row">
               <span class="book-detail-label">ISBN:</span>
               <span class="book-detail-value">${escapeHtml(book.isbn)}</span>
-            </div>` : ''}
-          ${book.pages ? `
+            </div>`
+              : ""
+          }
+          ${
+            book.pages
+              ? `
             <div class="book-detail-row">
               <span class="book-detail-label">Páginas:</span>
               <span class="book-detail-value">${book.pages}</span>
-            </div>` : ''}
-          ${book.publishedDate ? `
+            </div>`
+              : ""
+          }
+          ${
+            book.publishedDate
+              ? `
             <div class="book-detail-row">
               <span class="book-detail-label">Publicado:</span>
-              <span class="book-detail-value">${new Date(book.publishedDate).toLocaleDateString('es-ES')}</span>
-            </div>` : ''}
+              <span class="book-detail-value">${new Date(book.publishedDate).toLocaleDateString("es-ES")}</span>
+            </div>`
+              : ""
+          }
         </div>
-        ${book.description ? `<div class="book-description">${escapeHtml(book.description)}</div>` : ''}
+        ${book.description ? `<div class="book-description">${escapeHtml(book.description)}</div>` : ""}
       </div>
       <div class="book-actions">
         <button class="btn btn-edit" onclick="openEditModal('${book._id}')">Editar</button>
         <button class="btn btn-delete" onclick="deleteBook('${book._id}')">Eliminar</button>
       </div>
     </div>
-  `).join('');
+  `,
+    )
+    .join("");
 }
 
 function handleSearch() {
-  const term = (searchInput.value || '').toLowerCase();
+  const term = (searchInput.value || "").toLowerCase();
   if (!term) {
     filteredBooks = [...allBooks];
   } else {
-    filteredBooks = allBooks.filter(b =>
-      (b.title || '').toLowerCase().includes(term) ||
-      (b.author || '').toLowerCase().includes(term)
+    filteredBooks = allBooks.filter(
+      (b) =>
+        (b.title || "").toLowerCase().includes(term) ||
+        (b.author || "").toLowerCase().includes(term),
     );
   }
   renderBooks();
 }
 
 function openEditModal(bookId) {
-  const book = allBooks.find(b => b._id === bookId);
+  const book = allBooks.find((b) => b._id === bookId);
   if (!book) return;
-  document.getElementById('editId').value = book._id;
-  document.getElementById('editTitle').value = book.title;
-  document.getElementById('editAuthor').value = book.author || '';
-  document.getElementById('editIsbn').value = book.isbn || '';
-  document.getElementById('editDescription').value = book.description || '';
-  document.getElementById('editPages').value = book.pages || '';
-  document.getElementById('editPublishedDate').value =
-    book.publishedDate ? book.publishedDate.split('T')[0] : '';
-  editModal.style.display = 'block';
+  document.getElementById("editId").value = book._id;
+  document.getElementById("editTitle").value = book.title;
+  document.getElementById("editAuthor").value = book.author || "";
+  document.getElementById("editIsbn").value = book.isbn || "";
+  document.getElementById("editDescription").value = book.description || "";
+  document.getElementById("editPages").value = book.pages || "";
+  document.getElementById("editPublishedDate").value = book.publishedDate
+    ? book.publishedDate.split("T")[0]
+    : "";
+  editModal.style.display = "block";
 }
 
 function closeModal() {
-  editModal.style.display = 'none';
+  editModal.style.display = "none";
   editForm.reset();
 }
 
 async function handleEditBook(e) {
   e.preventDefault();
-  const bookId = document.getElementById('editId').value;
+  const bookId = document.getElementById("editId").value;
 
   const formData = {
-    title: document.getElementById('editTitle').value.trim(),
-    author: document.getElementById('editAuthor').value.trim(),
-    isbn: document.getElementById('editIsbn').value.trim(),
-    description: document.getElementById('editDescription').value.trim(),
-    pages: parseInt(document.getElementById('editPages').value) || 0,
-    publishedDate: document.getElementById('editPublishedDate').value || null
+    title: document.getElementById("editTitle").value.trim(),
+    author: document.getElementById("editAuthor").value.trim(),
+    isbn: document.getElementById("editIsbn").value.trim(),
+    description: document.getElementById("editDescription").value.trim(),
+    pages: parseInt(document.getElementById("editPages").value) || 0,
+    publishedDate: document.getElementById("editPublishedDate").value || null,
   };
 
   try {
     const response = await fetch(`${API_URL}/books/${bookId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
     });
-    if (!response.ok) throw new Error('Error al actualizar libro');
+    if (!response.ok) throw new Error("Error al actualizar libro");
     const updatedBook = await response.json();
-    const idx = allBooks.findIndex(b => b._id === bookId);
+    const idx = allBooks.findIndex((b) => b._id === bookId);
     if (idx !== -1) allBooks[idx] = updatedBook;
     filteredBooks = [...allBooks];
     renderBooks();
@@ -175,9 +194,11 @@ async function handleEditBook(e) {
 
 async function deleteBook(bookId) {
   try {
-    const response = await fetch(`${API_URL}/books/${bookId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Error al eliminar libro');
-    allBooks = allBooks.filter(b => b._id !== bookId);
+    const response = await fetch(`${API_URL}/books/${bookId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Error al eliminar libro");
+    allBooks = allBooks.filter((b) => b._id !== bookId);
     filteredBooks = [...allBooks];
     renderBooks();
     updateBookCount();
@@ -188,8 +209,8 @@ async function deleteBook(bookId) {
 
 async function handleDeleteAll() {
   try {
-    const response = await fetch(`${API_URL}/books`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Error al eliminar todos los libros');
+    const response = await fetch(`${API_URL}/books`, { method: "DELETE" });
+    if (!response.ok) throw new Error("Error al eliminar todos los libros");
     allBooks = [];
     filteredBooks = [];
     renderBooks();
@@ -204,11 +225,17 @@ function updateBookCount() {
 }
 
 function escapeHtml(text) {
-  if (!text) return '';
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return text.replace(/[&<>"']/g, m => map[m]);
+  if (!text) return "";
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
-window.addEventListener('click', e => {
+window.addEventListener("click", (e) => {
   if (e.target === editModal) closeModal();
 });

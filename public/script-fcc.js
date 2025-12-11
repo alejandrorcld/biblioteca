@@ -61,22 +61,24 @@ async function fccDeleteBook(id) {
   }
 }
 
-fccForm.addEventListener('submit', async e => {
-  e.preventDefault();
-  const title = fccTitleInput.value.trim();
-  if (!title) return;
+if (fccForm) {
+  fccForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = fccTitleInput.value.trim();
+    if (!title) return;
 
-  try {
-    await fetch(FCC_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title })
-    });
-    fccTitleInput.value = '';
-    await fccLoadBooks();
-  } catch (err) {
-    console.error(err);
-  }
-});
+    try {
+      await fetch(FCC_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+      fccTitleInput.value = '';
+      await fccLoadBooks();
+    } catch (err) {
+      console.error(err);
+    }
+  });
 
-fccLoadBooks();
+  fccLoadBooks();
+}
