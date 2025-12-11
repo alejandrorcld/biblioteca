@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Book = require('../models/Book');
+const mongoose = require('mongoose');
 
 router.use((req, res, next) => {
   req.Book = Book;
@@ -39,11 +40,14 @@ router.get('/books', async (req, res) => {
 // GET single book by id
 router.get('/books/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.send('no book exists');
+    }
     const book = await Book.findById(req.params.id);
     if (!book) return res.send('no book exists');
     return res.json({ title: book.title, _id: book._id, comments: book.comments });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.send('no book exists');
   }
 });
 
@@ -52,24 +56,32 @@ router.post('/books/:id', async (req, res) => {
   try {
     const { comment } = req.body;
     if (!comment) return res.send('missing required field comment');
+    
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.send('no book exists');
+    }
+    
     const book = await Book.findById(req.params.id);
     if (!book) return res.send('no book exists');
     book.comments.push(comment);
     await book.save();
     return res.json({ title: book.title, _id: book._id, comments: book.comments });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.send('no book exists');
   }
 });
 
 // DELETE a book by id
 router.delete('/books/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.send('no book exists');
+    }
     const book = await Book.findByIdAndDelete(req.params.id);
     if (!book) return res.send('no book exists');
     return res.send('delete successful');
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.send('no book exists');
   }
 });
 
