@@ -1,12 +1,23 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
+const { Sequelize } = require('sequelize');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Sequelize with SQLite
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: path.join(__dirname, 'database.sqlite'),
+  logging: false
+});
+
+// Import Book model
+const bookModel = require('./models/Book');
+const Book = bookModel(sequelize);
 
 // Middleware
 app.use(cors());
@@ -18,20 +29,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// MongoDB Connection
-const mongoUri = process.env.DB;
-if (mongoUri) {
-  mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+// Database connection and sync
+sequelize.authenticate()
+  .then(() => {
+    console.log('Connected to SQLite database');
+    return sequelize.sync();
   })
-    .then(() => {
-      console.log('Connected to MongoDB');
-    })
-    .catch((error) => {
-      console.error('MongoDB connection error:', error);
-    });
-}
+  .then(() => {
+    console.log('Database synchronized');
+  })
+  .catch((error) => {
+    console.error('Database error:', error);
+  });
+
+// Make Book model available globally for routes
+app.locals.Book = Book;
 
 // Routes
 app.use('/api', require('./routes/api'));
