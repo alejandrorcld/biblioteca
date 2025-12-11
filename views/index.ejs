@@ -14,18 +14,20 @@
     </header>
 
     <main>
-      <!-- Formulario para agregar libros -->
+      <!-- Formulario para agregar libros (FCC exige id="newBookForm") -->
       <section class="form-section">
         <h2>Agregar Nuevo Libro</h2>
-        <form id="bookForm">
+
+        <form id="newBookForm">
           <div class="form-group">
             <label for="title">Título:</label>
             <input type="text" id="title" name="title" required>
           </div>
 
+          <!-- Tus campos extra siguen funcionando -->
           <div class="form-group">
             <label for="author">Autor:</label>
-            <input type="text" id="author" name="author" required>
+            <input type="text" id="author" name="author">
           </div>
 
           <div class="form-group">
@@ -54,27 +56,35 @@
         </form>
       </section>
 
-      <!-- Lista de libros -->
+      <!-- Lista de libros (FCC exige id="bookList" y que sea UL) -->
       <section class="books-section">
         <h2>Mis Libros (<span id="bookCount">0</span>)</h2>
+
         <div class="controls">
           <input type="text" id="searchInput" placeholder="Buscar por título o autor...">
           <button id="deleteAllBtn" class="btn btn-danger">Eliminar Todo</button>
         </div>
 
-        <div id="booksList" class="books-grid">
+        <ul id="bookList" class="books-grid">
           <p class="empty-state">No hay libros aún. ¡Agrega uno para empezar!</p>
-        </div>
+        </ul>
+      </section>
+
+      <!-- Contenedor obligatorio para detalles (FCC exige id="bookDetail") -->
+      <section>
+        <div id="bookDetail"></div>
       </section>
     </main>
 
-    <!-- Modal para editar libro -->
+    <!-- Modal para editar libro (no afecta FCC) -->
     <div id="editModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
         <h2>Editar Libro</h2>
+
         <form id="editForm">
           <input type="hidden" id="editId">
+
           <div class="form-group">
             <label for="editTitle">Título:</label>
             <input type="text" id="editTitle" name="title" required>
@@ -82,7 +92,7 @@
 
           <div class="form-group">
             <label for="editAuthor">Autor:</label>
-            <input type="text" id="editAuthor" name="author" required>
+            <input type="text" id="editAuthor" name="author">
           </div>
 
           <div class="form-group">

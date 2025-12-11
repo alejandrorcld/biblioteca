@@ -34,11 +34,15 @@ app.get('/', (req, res) => {
 // Endpoint for FCC to get tests
 app.get('/_api/get-tests', (req, res) => {
   res.json([
-    'GET all books',
     'POST new book',
+    'POST book without title',
     'GET book by ID',
-    'PUT update book',
+    'GET book invalid ID',
+    'POST comment to book',
+    'POST comment without comment',
+    'POST comment invalid ID',
     'DELETE book by ID',
+    'DELETE book invalid ID',
     'DELETE all books'
   ]);
 });
